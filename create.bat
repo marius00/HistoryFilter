@@ -1,0 +1,1 @@
+Inno\iscc Inno\installer.iss

@@ -2,3 +2,6 @@
 /bin
 /packages
 /.vs
+/inno
+/Installer/*.exe
+/*.user

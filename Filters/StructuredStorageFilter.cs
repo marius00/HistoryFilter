@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.Compilation;
-using System.Web.UI.WebControls;
 using log4net;
 using OpenMcdf;
 
@@ -15,6 +9,7 @@ namespace HistoryFilter.Filters {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(StructuredStorageFilter));
         private readonly List<string> _filters;
 
+        #region ApplicationMapping
         private static readonly Dictionary<string, string> ApplicationMapping = new Dictionary<string, string> { {"0006f647f9488d7a", "AIM 7.5.11.9 (custom AppID + JL support)"},
             {"00098b0ef1c84088", "fulDC 6.78"},
             {"012dc1ea8e34b5a6", "Microsoft Paint 6.1"},
@@ -595,6 +590,7 @@ namespace HistoryFilter.Filters {
             {"ff224628f0e8103c", "Morpheus 3.0.3.6"},
             {"ff99ba2fb2e34b73", "Microsoft Windows Calculator"},
         };
+        #endregion
 
         public StructuredStorageFilter(List<string> filters) {
             _filters = filters;
@@ -647,10 +643,42 @@ namespace HistoryFilter.Filters {
             return false;
         }
 
-        private string GetApplicationName(string filename) {
+        private static string GetApplicationName(string filename) {
             var nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
             var type = ApplicationMapping.ContainsKey(nameWithoutExt) ? ApplicationMapping[nameWithoutExt] : "Unknown";
             return type;
+        }
+
+        private void HandleFile(FileStream fs, string fileName) {
+            var type = GetApplicationName(fileName);
+
+            using (var cf = new CompoundFile(fs, CFSUpdateMode.Update, CFSConfiguration.SectorRecycle | CFSConfiguration.NoValidationException | CFSConfiguration.EraseFreeSectors)) {
+                CFStorage storage = cf.RootStorage;
+
+                int numDeleted = 0;
+                Action<CFItem> va = delegate (CFItem target) {
+                    bool doFilter = ContainsPattern(storage, target.Name);
+                    bool canFilter = !"DestList".Equals(target.Name);
+
+                    if (doFilter) {
+                        if (canFilter) {
+                            Console.WriteLine($"Deleting {target.Name} from {fileName} {type}");
+                            storage.Delete(target.Name);
+                            numDeleted++;
+                        }
+                        else {
+                            Console.WriteLine($"Found but skipping {target.Name} from {fileName}");
+                        }
+                    }
+
+                };
+                storage.VisitEntries(va, false);
+
+                if (numDeleted > 0) {
+                    cf.Commit();
+                    Logger.Debug($"Modifying {fileName}, deleted {numDeleted} entries");
+                }
+            }
         }
 
         public void Purge() {
@@ -668,44 +696,8 @@ namespace HistoryFilter.Filters {
             var files = Directory.EnumerateFiles(path, "*.automaticDestinations-ms");
             foreach (var fileName in files) {
                 try {
-                    var type = GetApplicationName(fileName);
-                    Logger.Debug($"Scanning {fileName}: {type}");
-                    
-                    using (var fs = new FileStream(
-                        fileName,
-                        FileMode.Open,
-                        FileAccess.ReadWrite
-                    )) {
-
-                        using (var cf = new CompoundFile(fs, CFSUpdateMode.Update, CFSConfiguration.SectorRecycle | CFSConfiguration.NoValidationException | CFSConfiguration.EraseFreeSectors)) {
-                            CFStorage storage = cf.RootStorage;
-
-                            int numDeleted = 0;
-                            Action<CFItem> va = delegate(CFItem target) {
-                                bool doFilter = ContainsPattern(storage, target.Name);
-                                bool canFilter = !"DestList".Equals(target.Name);
-
-                                if (doFilter) {
-                                    if (canFilter) {
-                                        Console.WriteLine($"Deleting {target.Name} from {fileName} {type}");
-                                        storage.Delete(target.Name);
-                                        numDeleted++;
-                                    }
-                                    else {
-                                        Console.WriteLine($"Found but skipping {target.Name} from {fileName}");
-                                    }
-                                }
-
-                            };
-                            storage.VisitEntries(va, false);
-
-                            if (numDeleted > 0) {
-                                cf.Commit();
-                                Logger.Debug($"Storing new {fileName}, deleted {numDeleted} entries");
-                            }
-
-                        }
-
+                    using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite)) {
+                        HandleFile(fs, fileName);
                     }
                 }
                 catch (System.IO.IOException ex) {
