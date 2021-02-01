@@ -670,6 +670,7 @@ namespace HistoryFilter.Filters {
                 try {
                     var type = GetApplicationName(fileName);
                     Logger.Debug($"Scanning {fileName}: {type}");
+                    
                     using (var fs = new FileStream(
                         fileName,
                         FileMode.Open,
@@ -679,7 +680,7 @@ namespace HistoryFilter.Filters {
                         using (var cf = new CompoundFile(fs, CFSUpdateMode.Update, CFSConfiguration.SectorRecycle | CFSConfiguration.NoValidationException | CFSConfiguration.EraseFreeSectors)) {
                             CFStorage storage = cf.RootStorage;
 
-                            bool isModified = false;
+                            int numDeleted = 0;
                             Action<CFItem> va = delegate(CFItem target) {
                                 bool doFilter = ContainsPattern(storage, target.Name);
                                 bool canFilter = !"DestList".Equals(target.Name);
@@ -688,7 +689,7 @@ namespace HistoryFilter.Filters {
                                     if (canFilter) {
                                         Console.WriteLine($"Deleting {target.Name} from {fileName} {type}");
                                         storage.Delete(target.Name);
-                                        isModified = true;
+                                        numDeleted++;
                                     }
                                     else {
                                         Console.WriteLine($"Found but skipping {target.Name} from {fileName}");
@@ -698,9 +699,9 @@ namespace HistoryFilter.Filters {
                             };
                             storage.VisitEntries(va, false);
 
-                            if (isModified) {
+                            if (numDeleted > 0) {
                                 cf.Commit();
-                                Logger.Debug($"Storing new {fileName}");
+                                Logger.Debug($"Storing new {fileName}, deleted {numDeleted} entries");
                             }
 
                         }

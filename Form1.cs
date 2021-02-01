@@ -61,9 +61,14 @@ namespace HistoryFilter {
 
         private void buttonAdd_Click(object sender, EventArgs e) {
             if (!string.IsNullOrEmpty(textBox1.Text)) {
-                listBox1.Items.Add(textBox1.Text);
-                _settings.AddPrefix(textBox1.Text);
-                textBox1.Text = "";
+                if (textBox1.Text.Length < 3) {
+                    MessageBox.Show(@"The minimum prefix length is 3 characters (ex: Z:\)");
+                }
+                else {
+                    listBox1.Items.Add(textBox1.Text);
+                    _settings.AddPrefix(textBox1.Text);
+                    textBox1.Text = "";
+                }
             }
         }
 
