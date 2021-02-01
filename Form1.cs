@@ -32,6 +32,17 @@ namespace HistoryFilter {
 
             textBox1.KeyPress += TextBox1_KeyPress;
             this.FormClosing += Form1_FormClosing;
+            cbStartOnBoot.Checked = StartupRegistrationService.IsInstalled();
+
+            cbStartOnBoot.CheckedChanged += (o, args) => {
+                var install = (o as CheckBox).Checked;
+                if (install) {
+                    StartupRegistrationService.Install();
+                }
+                else {
+                    StartupRegistrationService.Uninstall();
+                }
+            };
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e) {
@@ -74,5 +85,8 @@ namespace HistoryFilter {
             }
         }
 
+        private void cbStartOnBoot_CheckedChanged(object sender, EventArgs e) {
+
+        }
     }
 }

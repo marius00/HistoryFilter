@@ -32,6 +32,7 @@ namespace HistoryFilter {
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            this.cbStartOnBoot = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // listBox1
@@ -90,11 +91,24 @@ namespace HistoryFilter {
             this.notifyIcon1.Text = "notifyIcon1";
             this.notifyIcon1.Visible = true;
             // 
+            // cbStartOnBoot
+            // 
+            this.cbStartOnBoot.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbStartOnBoot.AutoSize = true;
+            this.cbStartOnBoot.Location = new System.Drawing.Point(277, 5);
+            this.cbStartOnBoot.Name = "cbStartOnBoot";
+            this.cbStartOnBoot.Size = new System.Drawing.Size(125, 17);
+            this.cbStartOnBoot.TabIndex = 5;
+            this.cbStartOnBoot.Text = "Start on System Boot";
+            this.cbStartOnBoot.UseVisualStyleBackColor = true;
+            this.cbStartOnBoot.CheckedChanged += new System.EventHandler(this.cbStartOnBoot_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(414, 256);
+            this.Controls.Add(this.cbStartOnBoot);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.buttonRemove);
@@ -117,6 +131,7 @@ namespace HistoryFilter {
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
+        private System.Windows.Forms.CheckBox cbStartOnBoot;
     }
 }
 
