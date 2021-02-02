@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using HistoryFilter.Util;
 using log4net;
 using OpenMcdf;
 
@@ -8,6 +9,7 @@ namespace HistoryFilter.Filters {
     class StructuredStorageFilter : IFilter {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(StructuredStorageFilter));
         private List<string> _masks;
+        private readonly Shell32.Shell _shell = new Shell32.Shell();
 
         #region ApplicationMapping
         private static readonly Dictionary<string, string> ApplicationMapping = new Dictionary<string, string> { {"0006f647f9488d7a", "AIM 7.5.11.9 (custom AppID + JL support)"},
@@ -631,13 +633,50 @@ namespace HistoryFilter.Filters {
             return -1;
         }
 
+        private string GetLnkTarget(byte[] linkBytes) {
+            var tmp = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".lnk");
+            try {
+                try {
+                    File.WriteAllBytes(tmp, linkBytes);
+                    try {
+                        // TODO: Verify that we're dealing with a .lnk before writing this to disk etc?
+                        return LinkUtil.GetLnkTarget(_shell, tmp);
+                    }
+                    catch (System.Runtime.InteropServices.COMException) {
+                        return string.Empty; // Not a .lnk
+                    }
+                }
+                catch (IOException ex) {
+                    Logger.Warn(ex);
+                    return string.Empty;
+                }
+            }
+            finally {
+                try {
+                    File.Delete(tmp);
+                }
+                catch (Exception ex) {
+                    Logger.Warn(ex);
+                }
+            }
+        }
+
         private bool ContainsPattern(CFStorage storage, string fileName) {
             var stream = storage.GetStream(fileName);
             var data = stream.GetData();
+            if (data.Length == 0)
+                return false;
+
             foreach (var pattern in _masks) {
-                if (ContainsSubstring(data, pattern)) {
+
+                var target = GetLnkTarget(data);
+                if (target.ToLowerInvariant().StartsWith(pattern.ToLowerInvariant())) {
                     return true;
                 }
+                
+                /*if (ContainsSubstring(data, pattern)) {
+                    return true;
+                }*/
             }
 
             return false;
@@ -693,7 +732,8 @@ namespace HistoryFilter.Filters {
                 "AutomaticDestinations"
             );
 
-            var files = Directory.EnumerateFiles(path, "*.automaticDestinations-ms");
+            //var files = Directory.EnumerateFiles(path, "*.automaticDestinations-ms");
+            var files = new string[] { Path.Combine(path, "5f7b5f1e01b83767.automaticDestinations-ms") };
             foreach (var fileName in files) {
                 try {
                     using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite)) {

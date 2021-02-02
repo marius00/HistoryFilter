@@ -91,6 +91,7 @@
     <Compile Include="Settings\AppSettings.cs" />
     <Compile Include="Settings\SettingsReader.cs" />
     <Compile Include="Util\ExceptionHandler.cs" />
+    <Compile Include="Util\LinkUtil.cs" />
     <Compile Include="Util\MinimizeToTrayHandler.cs" />
     <Compile Include="Util\StartupRegistrationService.cs" />
     <EmbeddedResource Include="Form1.resx">

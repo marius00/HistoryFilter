@@ -44,6 +44,11 @@ namespace HistoryFilter {
                     StartupRegistrationService.Uninstall();
                 }
             };
+
+#if DEBUG
+            Text = Text + " (Debug)";
+            notifyIcon1.Text = notifyIcon1.Text + " (Debug)";
+#endif
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e) {
