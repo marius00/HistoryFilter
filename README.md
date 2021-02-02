@@ -1,6 +1,6 @@
 # HistoryFilter
 
-A simple tool to filter out entries from "recent files" and "quick access" in windows.  
+A simple tool to filter out entries from "recent files" and "quick access" in windows based on path prefix.  
 Useful for removing quick access links to files on pendrives and similar.
 
 The program starts minimized to tray (look for a book icon), double click the icon to open the UI.  

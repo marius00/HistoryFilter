@@ -7,10 +7,10 @@ namespace HistoryFilter.Filters {
     class RecentItemsFilter : IFilter {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(RecentItemsFilter));
         private readonly Shell32.Shell _shell = new Shell32.Shell();         // Move this to class scope
-        private readonly List<string> _filters;
+        private List<string> _masks;
 
-        public RecentItemsFilter(List<string> filters) {
-            _filters = filters;
+        public RecentItemsFilter(List<string> masks) {
+            _masks = masks;
         }
 
         public List<string> GetMatchingFiles() {
@@ -26,7 +26,7 @@ namespace HistoryFilter.Filters {
             foreach (var file in files) {
                 var target = GetLnkTarget(_shell, file);
 
-                foreach (var filter in _filters) {
+                foreach (var filter in _masks) {
                     var doFilter = target.StartsWith(filter, StringComparison.OrdinalIgnoreCase);
                     if (doFilter) {
                         result.Add(file);
@@ -48,7 +48,7 @@ namespace HistoryFilter.Filters {
         }
 
         public void Purge() {
-            if (_filters.Count == 0)
+            if (_masks.Count == 0)
                 return;
 
             foreach (var file in GetMatchingFiles()) {
@@ -59,6 +59,10 @@ namespace HistoryFilter.Filters {
                     Logger.Warn(ex.Message, ex);
                 }
             }
+        }
+
+        public void SetMasks(List<string> masks) {
+            _masks = masks;
         }
     }
 }

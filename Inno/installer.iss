@@ -40,7 +40,7 @@ DisableWelcomePage=Yes
 ArchitecturesInstallIn64BitMode=x64
 AlwaysShowDirOnReadyPage=Yes
 DisableDirPage=No
-OutputBaseFilename=HistoryFilter
+OutputBaseFilename=HistoryFilterInstaller
 
 
 [UninstallDelete]

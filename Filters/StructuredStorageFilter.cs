@@ -7,7 +7,7 @@ using OpenMcdf;
 namespace HistoryFilter.Filters {
     class StructuredStorageFilter : IFilter {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(StructuredStorageFilter));
-        private readonly List<string> _filters;
+        private List<string> _masks;
 
         #region ApplicationMapping
         private static readonly Dictionary<string, string> ApplicationMapping = new Dictionary<string, string> { {"0006f647f9488d7a", "AIM 7.5.11.9 (custom AppID + JL support)"},
@@ -592,8 +592,8 @@ namespace HistoryFilter.Filters {
         };
         #endregion
 
-        public StructuredStorageFilter(List<string> filters) {
-            _filters = filters;
+        public StructuredStorageFilter(List<string> masks) {
+            _masks = masks;
         }
 
         // TODO: Not a great way to check, look into decoding the actual binary content into a useful format.
@@ -634,7 +634,7 @@ namespace HistoryFilter.Filters {
         private bool ContainsPattern(CFStorage storage, string fileName) {
             var stream = storage.GetStream(fileName);
             var data = stream.GetData();
-            foreach (var pattern in _filters) {
+            foreach (var pattern in _masks) {
                 if (ContainsSubstring(data, pattern)) {
                     return true;
                 }
@@ -682,7 +682,7 @@ namespace HistoryFilter.Filters {
         }
 
         public void Purge() {
-            if (_filters.Count == 0)
+            if (_masks.Count == 0)
                 return;
 
             var path = Path.Combine(
@@ -704,6 +704,10 @@ namespace HistoryFilter.Filters {
                     Logger.Warn(ex);
                 }
             }
+        }
+
+        public void SetMasks(List<string> masks) {
+            _masks = masks;
         }
 
     }

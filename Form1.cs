@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using HistoryFilter.Filters;
 using HistoryFilter.Settings;
@@ -73,6 +74,7 @@ namespace HistoryFilter {
                     listBox1.Items.Add(textBox1.Text);
                     _settings.AddPrefix(textBox1.Text);
                     textBox1.Text = "";
+                    UpdateFilters();
                 }
             }
         }
@@ -82,6 +84,14 @@ namespace HistoryFilter {
             if (!string.IsNullOrEmpty(item?.ToString())) {
                 listBox1.Items.Remove(item);
                 _settings.RemovePrefix(item?.ToString());
+                UpdateFilters();
+            }
+        }
+
+        private void UpdateFilters() {
+            var masks = listBox1.Items.Cast<string>().ToList();
+            foreach (var filter in _filters) {
+                filter.SetMasks(masks);
             }
         }
 
