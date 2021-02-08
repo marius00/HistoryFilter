@@ -39,14 +39,17 @@ namespace HistoryFilter {
             Logger.Info("Starting application");
 
             SettingsReader settingsReader = SettingsReader.Load(SettingsFile);
+            var masks = settingsReader.GetSettings.Prefixes ?? new List<string>(0);
 
             List<IFilter> fileFilters = new List<IFilter> {
-                new RecentItemsFilter(settingsReader.GetSettings.Prefixes ?? new List<string>(0)),
-                new StructuredStorageFilter(settingsReader.GetSettings.Prefixes ?? new List<string>(0))
+                new RecentItemsFilter(masks),
+                new StructuredStorageFilter(masks)
             };
 
-            foreach (var filter in fileFilters) {
-                filter.Purge();
+            for (int i = 0; i < 3; i++) {
+                foreach (var filter in fileFilters) {
+                    filter.Purge();
+                }
             }
 
             ExceptionHandler.EnableLogUnhandledOnThread();

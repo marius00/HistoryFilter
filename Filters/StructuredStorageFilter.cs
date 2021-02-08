@@ -643,6 +643,7 @@ namespace HistoryFilter.Filters {
                         return LinkUtil.GetLnkTarget(_shell, tmp);
                     }
                     catch (System.Runtime.InteropServices.COMException) {
+                        Logger.Debug("COMException");
                         return string.Empty; // Not a .lnk
                     }
                 }
@@ -664,14 +665,18 @@ namespace HistoryFilter.Filters {
         private bool ContainsPattern(CFStorage storage, string fileName) {
             var stream = storage.GetStream(fileName);
             var data = stream.GetData();
-            if (data.Length == 0)
+            if (data.Length == 0) {
+                Logger.Debug($"Ignoring \"{fileName}\", len: 0");
                 return false;
+            }
 
             foreach (var pattern in _masks) {
-
                 var target = GetLnkTarget(data);
                 if (target.ToLowerInvariant().StartsWith(pattern.ToLowerInvariant())) {
+                    Logger.Debug($"Target \"{target}\" matches pattern \"{pattern}\"");
                     return true;
+                } else if (string.Empty.Equals(target)) {
+                    Logger.Debug($"Target \"{target}\" ignored, not a lnk file");
                 }
                 
                 /*if (ContainsSubstring(data, pattern)) {
@@ -701,12 +706,12 @@ namespace HistoryFilter.Filters {
 
                     if (doFilter) {
                         if (canFilter) {
-                            Console.WriteLine($"Deleting {target.Name} from {fileName} {type}");
+                            Logger.Debug($"Deleting {target.Name} from {fileName} {type}");
                             storage.Delete(target.Name);
                             numDeleted++;
                         }
                         else {
-                            Console.WriteLine($"Found but skipping {target.Name} from {fileName}");
+                            Logger.Debug($"Found but skipping {target.Name} from {fileName}");
                         }
                     }
 
@@ -733,8 +738,14 @@ namespace HistoryFilter.Filters {
             );
 
             //var files = Directory.EnumerateFiles(path, "*.automaticDestinations-ms");
-            var files = new string[] { Path.Combine(path, "5f7b5f1e01b83767.automaticDestinations-ms") };
+            var files = new string[] {
+                Path.Combine(path, "5f7b5f1e01b83767.automaticDestinations-ms"),
+                Path.Combine(path, "4cb9c5750d51c07f.automaticDestinations-ms"),
+                Path.Combine(path, "a52b0784bd667468.automaticDestinations-ms"),
+                Path.Combine(path, "f01b4d95cf55d32a.automaticDestinations-ms")
+            };
             foreach (var fileName in files) {
+                Logger.Debug($"Reading {fileName}");
                 try {
                     using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite)) {
                         HandleFile(fs, fileName);
@@ -743,6 +754,7 @@ namespace HistoryFilter.Filters {
                 catch (System.IO.IOException ex) {
                     Logger.Warn(ex);
                 }
+                Logger.Debug($"Processing complete for {fileName}");
             }
         }
 
