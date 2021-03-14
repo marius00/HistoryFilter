@@ -12,7 +12,9 @@ namespace HistoryFilter.Filters {
         private readonly Shell32.Shell _shell = new Shell32.Shell();
 
         #region ApplicationMapping
-        private static readonly Dictionary<string, string> ApplicationMapping = new Dictionary<string, string> { {"0006f647f9488d7a", "AIM 7.5.11.9 (custom AppID + JL support)"},
+
+        private static readonly Dictionary<string, string> ApplicationMapping = new Dictionary<string, string> {
+            {"0006f647f9488d7a", "AIM 7.5.11.9 (custom AppID + JL support)"},
             {"00098b0ef1c84088", "fulDC 6.78"},
             {"012dc1ea8e34b5a6", "Microsoft Paint 6.1"},
             {"01b29f0dc90366bb", "AIM 5.9.3857"},
@@ -592,6 +594,7 @@ namespace HistoryFilter.Filters {
             {"ff224628f0e8103c", "Morpheus 3.0.3.6"},
             {"ff99ba2fb2e34b73", "Microsoft Windows Calculator"},
         };
+
         #endregion
 
         public StructuredStorageFilter(List<string> masks) {
@@ -602,11 +605,11 @@ namespace HistoryFilter.Filters {
         private bool ContainsSubstring(byte[] bytes, string s) {
             for (int i = 0; i < bytes.Length - s.Length; i++) {
                 bool match = true;
-                
+
 
                 int offset = 0;
                 foreach (var c in s) {
-                    if (char.ToLower((char)bytes[i + offset]) != char.ToLower(c)) {
+                    if (char.ToLower((char) bytes[i + offset]) != char.ToLower(c)) {
                         match = false;
                         break;
                     }
@@ -623,7 +626,7 @@ namespace HistoryFilter.Filters {
         }
 
         private int GetFilenameEndIdx(byte[] bytes, int offset) {
-            byte[] desired = new byte[] { 0x00, 0x00 };
+            byte[] desired = new byte[] {0x00, 0x00};
             for (int i = offset; i < bytes.Length - desired.Length; i++) {
                 if (bytes[i] == desired[0] && bytes[i + 1] == desired[1]) {
                     return i;
@@ -634,18 +637,12 @@ namespace HistoryFilter.Filters {
         }
 
         private string GetLnkTarget(byte[] linkBytes) {
-            var tmp = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".lnk");
+            var tmp = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".lnk");
             try {
                 try {
                     File.WriteAllBytes(tmp, linkBytes);
-                    try {
-                        // TODO: Verify that we're dealing with a .lnk before writing this to disk etc?
-                        return LinkUtil.GetLnkTarget(_shell, tmp);
-                    }
-                    catch (System.Runtime.InteropServices.COMException) {
-                        Logger.Debug("COMException");
-                        return string.Empty; // Not a .lnk
-                    }
+                    // TODO: Verify that we're dealing with a .lnk before writing this to disk etc?
+                    return LinkUtil.GetLnkTarget(_shell, tmp);
                 }
                 catch (IOException ex) {
                     Logger.Warn(ex);
@@ -671,20 +668,33 @@ namespace HistoryFilter.Filters {
             }
 
             foreach (var pattern in _masks) {
-                var target = GetLnkTarget(data);
-                if (target.ToLowerInvariant().StartsWith(pattern.ToLowerInvariant())) {
-                    Logger.Debug($"Target \"{target}\" matches pattern \"{pattern}\"");
-                    return true;
-                } else if (string.Empty.Equals(target)) {
-                    Logger.Debug($"Target \"{target}\" ignored, not a lnk file");
+                try {
+                    var target = GetLnkTarget(data);
+                    if (target.ToLowerInvariant().StartsWith(pattern.ToLowerInvariant())) {
+                        Logger.Debug($"Target \"{target}\" matches pattern \"{pattern}\"");
+                        return true;
+                    }
+                    else if (string.Empty.Equals(target)) {
+                        Logger.Debug($"Target \"{target}\" ignored, not a lnk file");
+                    }
                 }
-                
+                catch (System.Runtime.InteropServices.COMException ex) {
+                    if (LinkUtil.IsMissingDriveException(ex)) {
+                        Logger.Debug($"Target drive does not exist, marking for deletion");
+                        return true;
+                    }
+                    else {
+                        Logger.Debug($"Target ignored, not a lnk file");
+                    }
+
+                }
+
                 /*if (ContainsSubstring(data, pattern)) {
                     return true;
                 }*/
-            }
+                }
 
-            return false;
+                return false;
         }
 
         private static string GetApplicationName(string filename) {
@@ -700,7 +710,7 @@ namespace HistoryFilter.Filters {
                 CFStorage storage = cf.RootStorage;
 
                 int numDeleted = 0;
-                Action<CFItem> va = delegate (CFItem target) {
+                Action<CFItem> va = delegate(CFItem target) {
                     bool doFilter = ContainsPattern(storage, target.Name);
                     bool canFilter = !"DestList".Equals(target.Name);
 
@@ -714,7 +724,6 @@ namespace HistoryFilter.Filters {
                             Logger.Debug($"Found but skipping {target.Name} from {fileName}");
                         }
                     }
-
                 };
                 storage.VisitEntries(va, false);
 
@@ -754,6 +763,7 @@ namespace HistoryFilter.Filters {
                 catch (System.IO.IOException ex) {
                     Logger.Warn(ex);
                 }
+
                 Logger.Debug($"Processing complete for {fileName}");
             }
         }
@@ -762,5 +772,8 @@ namespace HistoryFilter.Filters {
             _masks = masks;
         }
 
+        public void SetFilterMissingDrives(bool doFilter) {
+            // NOOP
+        }
     }
 }

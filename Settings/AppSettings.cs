@@ -6,6 +6,7 @@ namespace HistoryFilter.Settings {
 
         public event EventHandler OnMutate;
         private List<string> _prefixes;
+        private bool _filterMissingDrives;
 
         public void AddPrefix(string prefix) {
             if (_prefixes == null) {
@@ -30,6 +31,14 @@ namespace HistoryFilter.Settings {
             get => _prefixes;
             set {
                 _prefixes = value;
+                OnMutate?.Invoke(null, null);
+            }
+        }
+
+        public bool FilterMissingDrives {
+            get => _filterMissingDrives;
+            set {
+                _filterMissingDrives = value;
                 OnMutate?.Invoke(null, null);
             }
         }

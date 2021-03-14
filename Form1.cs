@@ -103,5 +103,12 @@ namespace HistoryFilter {
         private void cbStartOnBoot_CheckedChanged(object sender, EventArgs e) {
 
         }
+
+        private void cbFilterMissingDrives_CheckedChanged(object sender, EventArgs e) {
+            _settings.FilterMissingDrives = !_settings.FilterMissingDrives;
+            foreach (var filter in _filters) {
+                filter.SetFilterMissingDrives(_settings.FilterMissingDrives);
+            }
+        }
     }
 }

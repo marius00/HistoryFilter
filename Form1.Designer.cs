@@ -33,6 +33,7 @@ namespace HistoryFilter {
             this.label1 = new System.Windows.Forms.Label();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.cbStartOnBoot = new System.Windows.Forms.CheckBox();
+            this.cbFilterMissingDrives = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // listBox1
@@ -104,11 +105,24 @@ namespace HistoryFilter {
             this.cbStartOnBoot.UseVisualStyleBackColor = true;
             this.cbStartOnBoot.CheckedChanged += new System.EventHandler(this.cbStartOnBoot_CheckedChanged);
             // 
+            // cbFilterMissingDrives
+            // 
+            this.cbFilterMissingDrives.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbFilterMissingDrives.AutoSize = true;
+            this.cbFilterMissingDrives.Location = new System.Drawing.Point(286, 228);
+            this.cbFilterMissingDrives.Name = "cbFilterMissingDrives";
+            this.cbFilterMissingDrives.Size = new System.Drawing.Size(116, 17);
+            this.cbFilterMissingDrives.TabIndex = 6;
+            this.cbFilterMissingDrives.Text = "Filter missing drives";
+            this.cbFilterMissingDrives.UseVisualStyleBackColor = true;
+            this.cbFilterMissingDrives.CheckedChanged += new System.EventHandler(this.cbFilterMissingDrives_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(414, 256);
+            this.Controls.Add(this.cbFilterMissingDrives);
             this.Controls.Add(this.cbStartOnBoot);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
@@ -133,6 +147,7 @@ namespace HistoryFilter {
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.CheckBox cbStartOnBoot;
+        private System.Windows.Forms.CheckBox cbFilterMissingDrives;
     }
 }
 

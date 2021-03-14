@@ -42,7 +42,7 @@ namespace HistoryFilter {
             var masks = settingsReader.GetSettings.Prefixes ?? new List<string>(0);
 
             List<IFilter> fileFilters = new List<IFilter> {
-                new RecentItemsFilter(masks),
+                new RecentItemsFilter(masks, settingsReader.GetSettings.FilterMissingDrives),
                 new StructuredStorageFilter(masks)
             };
 

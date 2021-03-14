@@ -5,5 +5,6 @@ namespace HistoryFilter.Filters {
         void Purge();
 
         void SetMasks(List<string> filters);
+        void SetFilterMissingDrives(bool doFilter);
     }
 }
